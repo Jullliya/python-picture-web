@@ -1,12 +1,19 @@
+version: '3.8'
+
 services:
-   front:
-        build: ./frontend
-        ports:
-            - "8080:8080"
-        volumes:
-            - ./frontend/src:/frontend/src
-            - ./frontend/package.json:/frontend/package.json
-   back:
-       build: ./backend
-       ports:
-            - "8000:8000"
+  front:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile-frontend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/front
+  back:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/back
