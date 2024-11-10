@@ -58,13 +58,13 @@ export default {
     },
   },
   methods: {
-    ...mapActions('table', ['removeTableData']),
+    ...mapActions('table', ['removeData']),
     changePage(page) {
       this.currentPage = page;
     },
     deleteItem(index) {
       const globalIndex = (this.currentPage - 1) * this.itemsPerPage + index;
-      this.removeTableData(globalIndex);
+      this.removeData(globalIndex);
 
       if (this.data.length === 0) {
         this.$router.push({name: ROUTES.HOME});

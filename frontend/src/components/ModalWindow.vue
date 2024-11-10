@@ -26,7 +26,6 @@
 </template>
 
 <script>
-import axiosInstance from "@/axios";
 import {mapActions} from 'vuex';
 import {ROUTES} from "@/router";
 
@@ -39,7 +38,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions('table', ['addTableData']),
+    ...mapActions('table', ['predictData', 'addData']),
 
     handleImageChange(file) {
       this.selectedFile = file.raw;
@@ -54,29 +53,19 @@ export default {
 
       this.loading = true;
 
-      const formData = new FormData();
-      formData.append('image', this.selectedFile);
+      this.predictData(this.selectedFile)
+          .then(response => {
+            const predictions = response.data.individual_predictions.map(prediction => String(prediction[0]));
+            const ensemble = String(response.data.ensemble_prediction[0]);
 
-      axiosInstance.post('/back/classification-image', formData)
-          .then((response) => {
-            const predictions = response.data.individual_predictions.map(prediction => prediction[0]);
-            const ensemble = response.data.ensemble_prediction[0];
-            const newData = {
-              image: this.selectedFile.name,
-              firstModelResult: predictions[0],
-              secondModelResult: predictions[1],
-              thirdModelResult: predictions[2],
-              ensembleModelsResult: ensemble
-            };
-            this.addTableData(newData);
-            this.$router.push({name: ROUTES.LIST});
-          })
-          .catch(() => {
-            this.$message.error('Ошибка при загрузке изображения.');
+            this.addData(this.selectedFile.name, predictions[0], predictions[1], predictions[2], ensemble)
+                .then(() => {
+                  this.$router.push({name: ROUTES.LIST});
+                })
           })
           .finally(() => {
             this.loading = false;
-          });
+          })
     },
   },
 };

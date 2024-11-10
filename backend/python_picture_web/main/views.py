@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from .models import Analyse
 from users.models import Users
+from django.views.decorators.csrf import csrf_exempt
 import io
 
 from rest_framework import status
@@ -11,6 +12,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from image_classifier.main.run import MainImageClassifierBySkinLesion
 # Create your views here.
+@csrf_exempt
 def cnn_result_post(request, key):
     if request.method == 'POST':
         try:

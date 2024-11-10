@@ -1,6 +1,5 @@
 const {defineConfig} = require('@vue/cli-service')
 module.exports = defineConfig({
-  transpileDependencies: true,
   devServer: {
     proxy: {
       '^/auth': {
@@ -9,6 +8,11 @@ module.exports = defineConfig({
         changeOrigin: true,
       },
       '^/back/classification-image': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      //todo тут захардкодил 6281
+      '^/cnn_table/6281/add': {
         target: 'http://localhost:8000',
         changeOrigin: true,
       }

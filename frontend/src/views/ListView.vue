@@ -1,7 +1,7 @@
 <template>
   <div class="list">
     <h1>Анализ</h1>
-    <TableComponent :data="tableStub"/>
+    <TableComponent :data="tableData"/>
   </div>
 </template>
 
@@ -16,9 +16,12 @@ export default {
   },
   computed: {
     ...mapGetters('table', ['getTableData']),
-    tableStub() {
+    tableData() {
       return this.getTableData;
     },
+  },
+  created() {
+    this.$store.dispatch('table/fetchTableData');
   },
 };
 </script>
