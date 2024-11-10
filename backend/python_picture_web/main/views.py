@@ -22,5 +22,7 @@ def delete_row(request):
     if request.method == "GET":
         row_id = request.GET.get("id")
         Analyse.objects.filter(id=row_id).delete()
-        analyse = list(Analyse.objects.values())
-        return HttpResponse(analyse, status=200)
+        if Analyse.objects.filter(id=row_id):
+            return HttpResponse(False)
+        else:
+            return HttpResponse(True)
