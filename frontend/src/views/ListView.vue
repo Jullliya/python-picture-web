@@ -17,11 +17,11 @@ export default {
   computed: {
     ...mapGetters('table', ['getTableData']),
     tableData() {
-      return this.getTableData;
+      return this.getTableData.results || [];
     },
   },
   created() {
-    this.$store.dispatch('table/fetchTableData');
+    this.$store.dispatch('table/fetchData');
   },
 };
 </script>

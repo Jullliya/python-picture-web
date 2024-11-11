@@ -2,10 +2,10 @@
   <div class="table-container">
     <ElTable class="table-container__table" :data="paginatedData">
       <ElTableColumn label="Изображение" prop="image"/>
-      <ElTableColumn label="Модель 1" prop="firstModelResult"/>
-      <ElTableColumn label="Модель 2" prop="secondModelResult"/>
-      <ElTableColumn label="Модель 3" prop="thirdModelResult"/>
-      <ElTableColumn label="Результат" prop="ensembleModelsResult"/>
+      <ElTableColumn label="Модель 1" prop="model_1"/>
+      <ElTableColumn label="Модель 2" prop="model_2"/>
+      <ElTableColumn label="Модель 3" prop="model_3"/>
+      <ElTableColumn label="Результат" prop="ensemble"/>
       <ElTableColumn label="Действия">
         <template #default="{ $index }">
           <ElButton
@@ -64,7 +64,8 @@ export default {
     },
     deleteItem(index) {
       const globalIndex = (this.currentPage - 1) * this.itemsPerPage + index;
-      this.removeData(globalIndex);
+      const itemToRemove = this.data[globalIndex];
+      this.removeData(itemToRemove.id);
 
       if (this.data.length === 0) {
         this.$router.push({name: ROUTES.HOME});

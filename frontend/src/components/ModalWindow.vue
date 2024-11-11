@@ -53,12 +53,22 @@ export default {
 
       this.loading = true;
 
+      console.log('Файл для предсказания:', this.selectedFile);
+
       this.predictData(this.selectedFile)
           .then(response => {
+
             const predictions = response.data.individual_predictions.map(prediction => String(prediction[0]));
             const ensemble = String(response.data.ensemble_prediction[0]);
 
-            this.addData(this.selectedFile.name, predictions[0], predictions[1], predictions[2], ensemble)
+            this.addData(
+                {
+                  image: this.selectedFile.name,  // Используйте имя файла для изображения
+                  model1: predictions[0],        // Модели 1, 2 и 3
+                  model2: predictions[1],
+                  model3: predictions[2],
+                  ensemble: ensemble              // Ensemble предсказание
+                })
                 .then(() => {
                   this.$router.push({name: ROUTES.LIST});
                 })

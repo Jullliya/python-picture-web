@@ -13,7 +13,7 @@ const mutations = {
 const actions = {
     fetchData({commit}) {
         const authToken = localStorage.getItem('authToken')
-        return axiosInstance.get(`/cnn_table/${authToken}/get`)
+        return axiosInstance.get(`cnn_table/${authToken}/get`)
             .then((response) => {
                 commit('SET_TABLE_DATA', response.data);
             })
@@ -21,19 +21,18 @@ const actions = {
                 console.error('Ошибка при получении данных:', error);
             });
     },
-    addData({dispatch}, image, model1, model2, model3, ensemble
+    addData({dispatch}, {image, model1, model2, model3, ensemble}
     ) {
         const authToken = localStorage.getItem('authToken')
         return axiosInstance
             .post(`/cnn_table/${authToken}/add`, {}, {
                 params: {
-                    //todo
                     image: String(image),
                     model_1: String(model1),
                     model_2: String(model2),
-                    model_3: String(model3.toString(),
+                    model_3: String(model3),
                     ensemble: ensemble.toString(),
-                },
+                }
             })
             .then(() => {
                 dispatch('fetchData');
@@ -52,10 +51,12 @@ const actions = {
                 console.error('Ошибка при загрузке изображения:', error);
             });
     },
-    removeData({dispatch, state}, index) {
-        const itemToRemove = state.tableData[index];
+    removeData({dispatch}, index) {
         const authToken = localStorage.getItem('authToken')
-        return axiosInstance.post(`/cnn_table/${authToken}/delete/${itemToRemove.id}`)
+
+        return axiosInstance.get(`/cnn_table/${authToken}/delete`, {
+            params: { id: index }
+        })
             .then(() => {
                 dispatch('fetchData');
             })

@@ -11,8 +11,7 @@ module.exports = defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
-      //todo тут захардкодил 6281
-      '^/cnn_table/6281/add': {
+      '^/cnn_table': {
         target: 'http://localhost:8000',
         changeOrigin: true,
       }
