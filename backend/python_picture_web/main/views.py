@@ -69,6 +69,7 @@ def get_result(request, key):
 
         analyse_data = [
             {
+                "id": record.id,
                 "image": record.image,
                 "model_1": record.model_1,
                 "model_2": record.model_2,
