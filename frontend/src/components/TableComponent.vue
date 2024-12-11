@@ -39,8 +39,12 @@
         <ElTableColumn label="Пациент" prop="patient"/>
         <ElTableColumn label="Изображение" prop="image"/>
         <ElTableColumn label="Дата и время загрузки" prop="date"/>
-        <ElTableColumn label="Модель 1 / Модель 2 / Модель 3 (Ансамбль)"
-                       :formatter="(row) => formatModelsAndResult(row)"/>
+        <ElTableColumn label="Модель 1 / Модель 2 / Модель 3 (Ансамбль)">
+          <template #default="scope">
+            <span>{{ formatModelsAndResult(scope.row) }}</span>
+            <i v-if="isResultMatch(scope.row)" class="el-icon-check result-check"></i>
+          </template>
+        </ElTableColumn>
         <ElTableColumn label="Действия">
           <template #default="{ $index }">
             <ElButton
@@ -78,10 +82,38 @@
             <span class="field-label">Описание:</span>
             <span class="field-value">{{description}}</span>
           </div>
+
+          <div class="field">
+            <span class="field-label">Диагноз:</span>
+            <span class="field-value">{{diagnosis}}</span>
+          </div>
         </div>
         <div slot="footer" class="el-dialog__footer">
-          <ElButton @click="() => closeModal()">Закрыть</ElButton>
+          <ElButton @click="() => openEditModal()">Редактировать</ElButton>
+          <ElButton @click="() => closeModal()">Закрыть</ElButton>          
         </div>
+      </ElDialog>
+      <ElDialog
+          :visible.sync="isEditModalVisible"
+          title="Редактирование записи"
+          width="40%"
+          @close="() => closeEditModal()"
+          class="table-container__edit-modal">
+        <ElForm>
+          <ElFormItem label="Описание">
+            <ElInput v-model="editForm.description" type="textarea" placeholder="Введите новое описание"></ElInput>
+          </ElFormItem>
+          <ElFormItem label="Диагноз">
+            <ElSelect v-model="editForm.diagnosis" placeholder="Выберите диагноз">
+              <ElOption v-for="option in diagnosisOptions" :key="option.value" :label="option.label" :value="option.value"/>
+              <ElOption label="Другое" value="other"/>
+            </ElSelect>
+          </ElFormItem>
+        </ElForm>
+        <span slot="footer" class="dialog-footer">
+          <ElButton @click="() => closeEditModal()">Отмена</ElButton>
+          <ElButton type="primary" @click="() => submitEdit()">Сохранить</ElButton>
+        </span>
       </ElDialog>
     </div>
     <div class="animated_container__pagination-container">
@@ -140,6 +172,22 @@ export default {
       modalTitle: '',
       patientName: '',
       uploadedFiles: [],
+      isEditModalVisible: false,
+      editForm: {
+        id: null,
+        description: '',
+        diagnosis: '',
+      },
+      diagnosisOptions: [
+        { label: 'Актинический кератоз (AK)', value: 'AK' },
+        { label: 'Плоскоклеточный рак (BCC)', value: 'BCC' },
+        { label: 'Доброкачественный кератоз (BKL)', value: 'BKL' },
+        { label: 'Дерматофиброма (DF)', value: 'DF' },
+        { label: 'Меланома (MEL)', value: 'MEL' },
+        { label: 'Меланоцитарный невус (NV)', value: 'NV' },
+        { label: 'Плоскоклеточный рак (SCC)', value: 'SCC' },
+        { label: 'Сосудистое поражение (VASC)', value: 'VASC' },
+      ],
     };
   },
   computed: {
@@ -154,7 +202,7 @@ export default {
   },
   methods: {
     axiosInstance,
-    ...mapActions('table', ['removeData', 'removeAllData', 'predictData', 'fetchData']),
+    ...mapActions('table', ['removeData', 'removeAllData', 'predictData', 'fetchData', 'updateRecord']),
 
     logout() {
       MessageBox.confirm(
@@ -269,15 +317,57 @@ export default {
       this.isModalVisible = true;
       this.modalTitle = row.image;
       this.patientName = row.patient;
-      let index;
-      for (index = 0; index < data.length; index++) {
-        if (data[index].date === row.date){
-          this.description = data[index].description;
-        }
-      }
+      this.description = row.description;
+      this.diagnosis = row.diagnosis;
+      this.selectedRow = row;
+      // let index;
+      // for (index = 0; index < data.length; index++) {
+      //   if (data[index].date === row.date){
+      //     this.description = data[index].description;
+      //   }
+      // }
     },
     closeModal() {
       this.isModalVisible = false;
+    },
+    openEditModal() {      
+      this.closeModal();
+      this.isEditModalVisible = true;
+      this.editForm.id = this.selectedRow.id;
+      this.editForm.description = this.selectedRow.description;
+      this.editForm.diagnosis = this.selectedRow.diagnosis;
+    },
+    closeEditModal() {
+      this.isEditModalVisible = false;
+      this.isModalVisible = true;
+    },
+    submitEdit() {
+      if (!this.editForm.description || !this.editForm.diagnosis) {
+        this.$message.error('Пожалуйста, заполните все поля.');
+        return;
+      }
+
+      this.updateRecord(this.editForm)
+        .then(() => {
+          this.$message.success('Запись успешно обновлена!');
+
+          this.description = this.editForm.description;
+          this.diagnosis = this.editForm.diagnosis;
+
+          if (this.selectedRow && this.selectedRow.id === this.editForm.id) {
+            this.selectedRow.description = this.editForm.description;
+            this.selectedRow.diagnosis = this.editForm.diagnosis;
+          }
+
+          this.closeEditModal();
+        })
+        .catch((error) => {
+          console.error('Ошибка при обновлении записи:', error);
+          this.$message.error('Ошибка при обновлении записи.');
+        });
+    },
+    isResultMatch(row) {
+      return row.ensemble === row.diagnosis;
     },
   },
 };
@@ -363,4 +453,13 @@ img {
     }
   }
 }
+
+.result-check {
+  color: green;
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 8px; 
+  vertical-align: middle;
+}
+
 </style>

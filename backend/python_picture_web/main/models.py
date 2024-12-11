@@ -14,3 +14,4 @@ class Analyse(models.Model):
     ensemble = models.CharField('result', max_length=8)
     patient = models.CharField('patient', max_length=32, default="patient")
     description = models.TextField('description', default="Patient analyse description.")
+    diagnosis = models.CharField('diagnosis', max_length=64, default="Не выбран", blank=True)

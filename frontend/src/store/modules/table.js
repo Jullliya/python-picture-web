@@ -63,6 +63,17 @@ const actions = {
                 console.error('Ошибка при удалении всех данных:', error);
             });
     },
+    updateRecord({ dispatch }, payload) {
+        const authToken = localStorage.getItem('authToken');
+        
+        return axiosInstance.post(`/cnn_table/${authToken}/update`, payload)
+            .then(() => {
+                dispatch('fetchData');
+            })
+            .catch((error) => {
+                console.error('Ошибка при обновлении записи:', error);
+            });
+      },
 };
 
 const getters = {

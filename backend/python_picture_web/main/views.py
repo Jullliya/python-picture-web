@@ -5,6 +5,7 @@ from users.models import Users
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 import os
+import json
 import requests
 
 from rest_framework import status
@@ -62,7 +63,8 @@ def cnn_result_post(request, key):
                 "model_3": analyse.model_3,
                 "result": analyse.ensemble,
                 "patient": analyse.patient,
-                "description": analyse.description
+                "description": analyse.description,
+                "diagnosis": analyse.diagnosis
             }
         })
 
@@ -91,7 +93,8 @@ def get_result(request, key):
                 "model_3": record.model_3,
                 "ensemble": record.ensemble,
                 "patient": record.patient,
-                "description": record.description
+                "description": record.description,
+                "diagnosis": record.diagnosis
             }
             for record in analyse_records
         ]
@@ -179,3 +182,34 @@ def classification_image(request: Request, key):
         response_status = status.HTTP_400_BAD_REQUEST
         exception = exc
         return Response({'error': str(exception)}, status=response_status)
+
+
+@csrf_exempt
+def update_analyse(request, key):
+    if request.method == 'POST':
+        try:
+            user = Users.objects.get(key=key)
+        except Users.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Пользователь не найден.'}, status=404)
+
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            record_id = data.get('id')
+            description = data.get('description')
+            diagnosis = data.get('diagnosis')
+
+            if not all([record_id, description, diagnosis]):
+                return JsonResponse({'success': False, 'message': 'Не все обязательные поля заполнены.'}, status=400)
+
+            analyse = Analyse.objects.get(id=record_id, user_key=user)
+            analyse.description = description
+            analyse.diagnosis = diagnosis
+            analyse.save()
+
+            return JsonResponse({'success': True, 'message': 'Запись успешно обновлена.'})
+        except Analyse.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Запись не найдена.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Ошибка: {str(e)}'}, status=500)
+
+    return JsonResponse({'success': False, 'message': 'Метод не поддерживается.'}, status=405)
