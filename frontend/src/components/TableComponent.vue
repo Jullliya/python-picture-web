@@ -180,7 +180,7 @@ export default {
       },
       diagnosisOptions: [
         { label: 'Актинический кератоз (AK)', value: 'AK' },
-        { label: 'Плоскоклеточный рак (BCC)', value: 'BCC' },
+        { label: 'Базальноклеточная карцинома (BCC)', value: 'BCC' },
         { label: 'Доброкачественный кератоз (BKL)', value: 'BKL' },
         { label: 'Дерматофиброма (DF)', value: 'DF' },
         { label: 'Меланома (MEL)', value: 'MEL' },
