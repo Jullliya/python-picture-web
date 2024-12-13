@@ -1,6 +1,6 @@
 <template>
-  <div class="animated_container" v-loading="loading">
-    <div class="animated_container__table-container">
+  <div class="animated-container" v-loading="loading">
+    <div class="table-container">
       <div class="table-container__controls">
         <ElButton type="primary" @click="() => openLoad()">Добавить</ElButton>
         <ElButton type="danger" @click="() => deleteAll()">Удалить все</ElButton>
@@ -42,7 +42,7 @@
         <ElTableColumn label="Модель 1 / Модель 2 / Модель 3 (Ансамбль)">
           <template #default="scope">
             <span>{{ formatModelsAndResult(scope.row) }}</span>
-            <i v-if="isResultMatch(scope.row)" class="el-icon-check result-check"></i>
+            <i v-if="isResultMatch(scope.row)" class="table-container__result-check el-icon-check"></i>
           </template>
         </ElTableColumn>
         <ElTableColumn label="Действия">
@@ -116,7 +116,7 @@
         </span>
       </ElDialog>
     </div>
-    <div class="animated_container__pagination-container">
+    <div class="animated-container__pagination-container">
       <div class="pagination-container__pagination">
         <ElPagination
             layout="prev, pager, next"
@@ -374,7 +374,7 @@ export default {
 </script>
 
 
-<style scoped>
+<style lang="less">
 .modal-fields {
   margin-top: 20px;
 
@@ -414,7 +414,7 @@ img {
   object-fit: contain;
 }
 
-.animated_container__pagination-container {
+.animated-container__pagination-container {
 
   &__pagination {
     display: flex;
@@ -424,7 +424,7 @@ img {
   }
 }
 
-.animated_container__table-container {
+.table-container {
   margin: 20px;
   text-align: end;
 
@@ -437,12 +437,19 @@ img {
   &__controls {
     display: flex;
     gap: 10px;
-    justify-content: center;
+    justify-content: flex-end;
     text-align: center;
   }
 
   &__table {
     width: 100%;
+  }
+
+  &__result-check {
+    color: green;
+    font-size: 20px;
+    margin-left: 8px; 
+    vertical-align: middle;
   }
 
   &__modal-window {
@@ -452,14 +459,6 @@ img {
       overflow: hidden;
     }
   }
-}
-
-.result-check {
-  color: green;
-  font-size: 20px;
-  font-weight: bold;
-  margin-left: 8px; 
-  vertical-align: middle;
 }
 
 </style>
