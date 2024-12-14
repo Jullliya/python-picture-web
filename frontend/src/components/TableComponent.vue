@@ -37,7 +37,15 @@
 
       <ElTable class="table-container__table" :data="paginatedData" @row-click="(row) => openModal(row, paginatedData)">
         <ElTableColumn label="Пациент" prop="patient"/>
-        <ElTableColumn label="Изображение" prop="image"/>
+        <ElTableColumn label="Изображение">
+          <template #default="{ row }">
+            <img
+                class="table-container__table--preview-image"
+                :src="row.image"
+                alt="Предпросмотр"
+            />
+          </template>
+        </ElTableColumn>
         <ElTableColumn label="Дата и время загрузки" prop="date"/>
         <ElTableColumn label="Модель 1 / Модель 2 / Модель 3 (Ансамбль)">
           <template #default="scope">
@@ -45,7 +53,7 @@
             <i v-if="isResultMatch(scope.row)" class="table-container__result-check el-icon-check"></i>
           </template>
         </ElTableColumn>
-        <ElTableColumn label="Действия">
+        <ElTableColumn label="Действия" class="table-container__actions">
           <template #default="{ $index }">
             <ElButton
                 type="danger"
@@ -62,12 +70,30 @@
 
       <ElDialog
           :visible.sync="isModalVisible"
-          :title="modalTitle"
+          title="Результат"
           width="40%"
           @close="() => closeModal()"
           class="table-container__modal-window--image">
         <div v-if="modalTitle">
           <img :src="modalTitle" alt="Изображение"/>
+          <div class="modal-probabilities">
+            <div class="field">
+              <span class="field-label">Вероятность 1 модели:</span>
+              <span class="field-value">{{ selectedRow.model_1}} - {{ (parseFloat(selectedRow.model_1_probability) * 100).toFixed(2) }}%</span>
+            </div>
+            <div class="field">
+              <span class="field-label">Вероятность 2 модели:</span>
+              <span class="field-value">{{ selectedRow.model_2}} - {{ (parseFloat(selectedRow.model_2_probability) * 100).toFixed(2) }}%</span>
+            </div>
+            <div class="field">
+              <span class="field-label">Вероятность 3 модели:</span>
+              <span class="field-value">{{ selectedRow.model_3}} - {{ (parseFloat(selectedRow.model_3_probability) * 100).toFixed(2) }}%</span>
+            </div>
+            <div class="field">
+              <span class="field-label">Вероятность ансамбля:</span>
+              <span class="field-value">{{ selectedRow.ensemble}} - {{ (parseFloat(selectedRow.ensemble_probability) / 3 * 100).toFixed(2) }}%</span>
+            </div>
+          </div>
         </div>
         <div v-else>
           <p>Загрузка изображения...</p>
@@ -75,17 +101,17 @@
         <div class="modal-fields">
           <div class="field">
             <span class="field-label">Пациент:</span>
-            <span class="field-value">{{patientName}}</span>
+            <span class="field-value">{{ patientName }}</span>
           </div>
 
           <div class="field">
             <span class="field-label">Описание:</span>
-            <span class="field-value">{{description}}</span>
+            <span class="field-value">{{ description }}</span>
           </div>
 
           <div class="field">
             <span class="field-label">Диагноз:</span>
-            <span class="field-value">{{getDiagnosisLabel(diagnosis)}}</span>
+            <span class="field-value">{{ getDiagnosisLabel(diagnosis) }}</span>
           </div>
         </div>
         <div slot="footer" class="el-dialog__footer">
@@ -105,7 +131,8 @@
           </ElFormItem>
           <ElFormItem label="Диагноз">
             <ElSelect v-model="editForm.diagnosis" placeholder="Выберите диагноз">
-              <ElOption v-for="option in diagnosisOptions" :key="option.value" :label="option.label" :value="option.value"/>
+              <ElOption v-for="option in diagnosisOptions" :key="option.value" :label="option.label"
+                        :value="option.value"/>
               <ElOption label="Другое" value="other"/>
             </ElSelect>
           </ElFormItem>
@@ -179,14 +206,14 @@ export default {
         diagnosis: '',
       },
       diagnosisOptions: [
-        { label: 'Актинический кератоз (AK)', value: 'AK' },
-        { label: 'Базальноклеточная карцинома (BCC)', value: 'BCC' },
-        { label: 'Доброкачественный кератоз (BKL)', value: 'BKL' },
-        { label: 'Дерматофиброма (DF)', value: 'DF' },
-        { label: 'Меланома (MEL)', value: 'MEL' },
-        { label: 'Меланоцитарный невус (NV)', value: 'NV' },
-        { label: 'Плоскоклеточный рак (SCC)', value: 'SCC' },
-        { label: 'Сосудистое поражение (VASC)', value: 'VASC' },
+        {label: 'Актинический кератоз (AK)', value: 'AK'},
+        {label: 'Базальноклеточная карцинома (BCC)', value: 'BCC'},
+        {label: 'Доброкачественный кератоз (BKL)', value: 'BKL'},
+        {label: 'Дерматофиброма (DF)', value: 'DF'},
+        {label: 'Меланома (MEL)', value: 'MEL'},
+        {label: 'Меланоцитарный невус (NV)', value: 'NV'},
+        {label: 'Плоскоклеточный рак (SCC)', value: 'SCC'},
+        {label: 'Сосудистое поражение (VASC)', value: 'VASC'},
       ],
     };
   },
@@ -300,7 +327,8 @@ export default {
       this.predictData({
         selectedFile: this.uploadedFiles[0],
         patient: this.formData.patient,
-        description: this.formData.description})
+        description: this.formData.description
+      })
           .then(() => {
             this.$message.success('Данные успешно отправлены и обработаны!');
           })
@@ -329,7 +357,17 @@ export default {
       this.patientName = row.patient;
       this.description = row.description;
       this.diagnosis = row.diagnosis;
-      this.selectedRow = row;
+      this.selectedRow = {
+        ...row,
+        model_1: row.model_1 || "Нет данных",
+        model_2: row.model_2 || "Нет данных",
+        model_3: row.model_3 || "Нет данных",
+        ensemble: row.ensemble || "Нет данных",
+        model_1_probability: row.model_1_probability || 0,
+        model_2_probability: row.model_2_probability || 0,
+        model_3_probability: row.model_3_probability || 0,
+        ensemble_probability: row.ensemble_probability || 0
+      };
     },
     closeModal() {
       this.isModalVisible = false;
@@ -352,23 +390,23 @@ export default {
       }
 
       this.updateRecord(this.editForm)
-        .then(() => {
-          this.$message.success('Запись успешно обновлена!');
+          .then(() => {
+            this.$message.success('Запись успешно обновлена!');
 
-          this.description = this.editForm.description;
-          this.diagnosis = this.editForm.diagnosis;
+            this.description = this.editForm.description;
+            this.diagnosis = this.editForm.diagnosis;
 
-          if (this.selectedRow && this.selectedRow.id === this.editForm.id) {
-            this.selectedRow.description = this.editForm.description;
-            this.selectedRow.diagnosis = this.editForm.diagnosis;
-          }
+            if (this.selectedRow && this.selectedRow.id === this.editForm.id) {
+              this.selectedRow.description = this.editForm.description;
+              this.selectedRow.diagnosis = this.editForm.diagnosis;
+            }
 
-          this.closeEditModal();
-        })
-        .catch((error) => {
-          console.error('Ошибка при обновлении записи:', error);
-          this.$message.error('Ошибка при обновлении записи.');
-        });
+            this.closeEditModal();
+          })
+          .catch((error) => {
+            console.error('Ошибка при обновлении записи:', error);
+            this.$message.error('Ошибка при обновлении записи.');
+          });
     },
     getDiagnosisLabel(value) {
       const option = this.diagnosisOptions.find(option => option.value === value);
@@ -451,6 +489,22 @@ img {
 
   &__table {
     width: 100%;
+
+    &--preview-image {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border: 1px solid #ddd;
+      padding: 2px;
+      border-radius: 4px;
+    }
+
+
+    .el-table__row {
+      .el-table__cell:last-child {
+        text-align: right;
+      }
+    }
   }
 
   &__result-check {
@@ -462,9 +516,38 @@ img {
 
   &__modal-window {
     &--image {
+      &__header {
+        text-align: center;
+      }
+
       padding: 10px;
       box-sizing: border-box;
       overflow: hidden;
+    }
+  }
+
+  .el-dialog {
+    &__header{
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  }
+}
+.modal-probabilities {
+  margin-top: 20px;
+
+  .field {
+    margin-bottom: 10px;
+    font-size: 14px;
+
+    .field-label {
+      font-weight: bold;
+      margin-right: 5px;
+    }
+
+    .field-value {
+      color: #666;
     }
   }
 }

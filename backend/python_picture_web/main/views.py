@@ -27,15 +27,19 @@ def cnn_result_post(request, key):
         if not image:
             return HttpResponse('Файл изображения обязателен.', status=400)
         current_datetime = datetime.now()
-        formatted_datetime = current_datetime.strftime("%d-%m-%Y %H:%M:%S")
+        formatted_datetime = current_datetime.strftime("%d.%m.%Y в %H:%M")
         model_1 = request.POST.get('model_1')
         model_2 = request.POST.get('model_2')
         model_3 = request.POST.get('model_3')
         ensemble = request.POST.get('ensemble')
+        model_1_probability = request.POST.get('model_1_probability')
+        model_2_probability = request.POST.get('model_2_probability')
+        model_3_probability = request.POST.get('model_3_probability')
+        ensemble_probability = request.POST.get('ensemble_probability')
         patient = request.POST.get('patient')
         description = request.POST.get('description')
 
-        if not all([model_1, model_2, model_3, ensemble, patient, description]):
+        if not all([model_1, model_2, model_3, ensemble,model_1_probability, model_2_probability, model_3_probability, ensemble_probability, patient, description]):
             return HttpResponse('Отсутствуют обязательные параметры.', status=400)
 
         analyse = Analyse.objects.create(
@@ -46,6 +50,10 @@ def cnn_result_post(request, key):
             model_2=model_2,
             model_3=model_3,
             ensemble=ensemble,
+            model_1_probability=model_1_probability,
+            model_2_probability=model_2_probability,
+            model_3_probability=model_3_probability,
+            ensemble_probability=ensemble_probability,
             patient=patient,
             description=description
         )
@@ -61,6 +69,10 @@ def cnn_result_post(request, key):
                 "model_1": analyse.model_1,
                 "model_2": analyse.model_2,
                 "model_3": analyse.model_3,
+                "model_1_probability": analyse.model_1_probability,
+                "model_2_probability": analyse.model_2_probability,
+                "model_3_probability": analyse.model_3_probability,
+                "ensemble_probability": analyse.ensemble_probability,
                 "result": analyse.ensemble,
                 "patient": analyse.patient,
                 "description": analyse.description,
@@ -91,6 +103,10 @@ def get_result(request, key):
                 "model_1": record.model_1,
                 "model_2": record.model_2,
                 "model_3": record.model_3,
+                "model_1_probability": record.model_1_probability,
+                "model_2_probability": record.model_2_probability,
+                "model_3_probability": record.model_3_probability,
+                "ensemble_probability": record.ensemble_probability,
                 "ensemble": record.ensemble,
                 "patient": record.patient,
                 "description": record.description,
@@ -159,6 +175,7 @@ def classification_image(request: Request, key):
         result = MainImageClassifierBySkinLesion().apply(image_data)
 
         individual_labels = [label for label, _ in result['individual_predictions']]
+        individual_probability = [max(probability) for _, probability in result['individual_predictions']]
         ensemble_label = result['ensemble_prediction'][0]
 
         model_1 = individual_labels[0]
@@ -166,11 +183,20 @@ def classification_image(request: Request, key):
         model_3 = individual_labels[2]
         ensemble = ensemble_label
 
+        model_1_probability =individual_probability[0]
+        model_2_probability =individual_probability[1]
+        model_3_probability =individual_probability[2]
+        ensemble_probability = max(result['ensemble_prediction'][1])
+
         data = {
             "model_1": model_1,
             "model_2": model_2,
             "model_3": model_3,
             "ensemble": ensemble,
+            "model_1_probability": model_1_probability,
+            "model_2_probability": model_2_probability,
+            "model_3_probability": model_3_probability,
+            "ensemble_probability": ensemble_probability,
             "patient": request.POST.get('patient'),
             "description": request.POST.get('description')
         }
